@@ -1,4 +1,4 @@
-from Reddit_Endo.Init import Init
+from Init import Init
 from collections import defaultdict
 from collections import OrderedDict
 from datetime import datetime
@@ -28,7 +28,7 @@ try:
     # pick the top users who comment the most
     sorted_user = OrderedDict(sorted(user.items(), key=lambda kv:kv[1], reverse=True))
     for k, v in sorted_user.items():
-        print(k)
-        print(v)
+        init.logger.writeUser(k,v)
+
 except Exception as e:
      init.logger.writeError(e)
