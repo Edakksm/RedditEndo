@@ -1,6 +1,6 @@
-from Reddit_Endo.RedditConnect import RedditConnect
-from Reddit_Endo.Logger import Logger
-from Reddit_Endo.ConfigParser import ConfigParse
+from RedditConnect import RedditConnect
+from Logger import Logger
+from ConfigParser import ConfigParse
 
 class Init:
     def __init__(self):
@@ -11,8 +11,10 @@ class Init:
         self.password = config.__getattr__('password')
         self.subReddit = config.__getattr__('subreddit')
         self.limit =  config.__getattr__('limit')
-        self.logFileName =  config.__getattr__('logfile')
-        self.logger = Logger(self.logFileName)
+        self.errorlogFileName =  config.__getattr__('errorlogfile')
+        self.userlogFileName =  config.__getattr__('userlogfile')
+        self.logger = Logger(self.errorlogFileName, self.userlogFileName)
+        self.duration = config.__getattr__('duration')
 
 
     def ConnectToReddit(self):
