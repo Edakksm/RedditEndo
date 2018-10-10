@@ -1,6 +1,6 @@
 import configparser
 
-class ConfigParse:
+class ConfigParser:
 
     def __init__(self):
         cfg = configparser.ConfigParser()

@@ -1,0 +1,1 @@
+'Subreddit' object has no attribute 'n_subRed' 2018-09-26 15:36:10.661174'Subreddit' object has no attribute 'n_subRed' 2018-09-26 15:36:10.932377local variable 'hot_endo' referenced before assignment 2018-09-26 15:45:41.775112'Init' object has no attribute 'duration' 2018-10-02 17:19:39.836259
