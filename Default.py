@@ -57,14 +57,14 @@ for user in users:
             comment = user_data["data"][j]
             body = comment['body']
             subreddit = comment['subreddit']
-            date = datetime.utcfromtimestamp(comment['created_utc'])
+            date = datetime.utcfromtimestamp(comment['created_utc']) #check for 1 year
             users_non_endo_submissions[user[0].name][subreddit] += 1
     except Exception as e:
         print(e)
         init.logger.writeError(e.message)
 
 # sort each user with the number of subreddit
-users_non_endo_submissions.sort(key = l)
+
 if users_non_endo_submissions is not None and len(users_non_endo_submissions) > 0:
     try:
         init.fileWriter.writeData(users_non_endo_submissions)
@@ -72,3 +72,15 @@ if users_non_endo_submissions is not None and len(users_non_endo_submissions) > 
         init.logger.writeError(e.message)
 
 # https://www.reddit.com/r/redditdev/comments/8suiqu/scrape_all_submissions_and_comments_made_by_a/
+
+# Create the positive case - users posting in both endo and 5 of other
+# Create the negative case - users posting in other reddits but not in endo
+    # a. Get the top (how many) non endo reddits
+    # b. Get the list of user posting/comments in these reddits
+    # c. Get the MINUS of this list and the postitive case list
+
+
+# What features?
+
+
+
