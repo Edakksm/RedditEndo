@@ -65,11 +65,17 @@ for user in users:
 
 # sort each user with the number of subreddit
 
+non_subreddits = defaultdict(int)
 if users_non_endo_submissions is not None and len(users_non_endo_submissions) > 0:
     try:
-        init.fileWriter.writeData(users_non_endo_submissions)
+        for i,j in users_non_endo_submissions.items():
+            for k,v in j.items():
+                non_subreddits[k] += 1
+       # init.fileWriter.writeData(users_non_endo_submissions)
     except Exception as e:
         init.logger.writeError(e.message)
+
+
 
 # https://www.reddit.com/r/redditdev/comments/8suiqu/scrape_all_submissions_and_comments_made_by_a/
 
