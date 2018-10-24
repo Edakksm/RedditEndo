@@ -7,6 +7,8 @@ from dateutil.relativedelta import relativedelta
 import urllib.request
 import json
 import itertools
+import heapq
+from heapq import heappush, heappop
 
 # https://github.com/arimorcos/getRedditDataset
 init = Init()
@@ -75,6 +77,16 @@ if users_non_endo_submissions is not None and len(users_non_endo_submissions) > 
     except Exception as e:
         init.logger.writeError(e.message)
 
+# n is the number of most common subreddits that we are interested in
+def sort_non_subreddits(non_subreddits, n):
+	if non_subreddits is not None and len(non_subreddits)>0:
+		try:
+			heap = [(-value, key) for key,value in non_subreddits.items()]
+			most_common_subreddits = heapq.nsmallest(n, heap)
+			most_common_subreddits = [(key, -value) for value,key in most_common_subreddits]
+			return most_common_subreddits
+	    except Exception as e:
+	        init.logger.writeError(e.message)		
 
 
 # https://www.reddit.com/r/redditdev/comments/8suiqu/scrape_all_submissions_and_comments_made_by_a/
