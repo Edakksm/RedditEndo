@@ -15,7 +15,9 @@ class Init:
         self.limit =  config.__getattr__('limit')
         self.logFileName =  config.__getattr__('logfile')
         self.userFileName = config.__getattr__('userfile')
-        self.duration = config.__getattr__('duration')
+        self.start_duration = config.__getattr__('start_duration')
+        self.end_duration = config.__getattr__('end_duration')
+        self.pushShiftAPI = config.__getattr__('pushshiftapi')
         self.logger = Logger(self.logFileName)
         self.fileWriter = FileWriter(self.userFileName)
 

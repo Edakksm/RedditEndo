@@ -39,27 +39,20 @@ def returnUserDemographics(user, n_subRed):
     except Exception as e:
          init.logger.writeError(e)
 
-def createPositiveNegativeCases(users,positive_users, negative_users, n_subRed):
+def returnUserDemographics_NonEndo(user, n_subRed):
     try:
         sub = init.ConnectToReddit()
         endo = sub.subreddit(n_subRed).hot(limit=None)
         for hot_msg in endo:
             if not hot_msg.stickied:
-                created_date = datetime.utcfromtimestamp(hot_msg.created)
                 hot_msg.comments.replace_more(limit=5) #
                 comments = hot_msg.comments.list()
                 for cmt in comments:
                    if hasattr(cmt, 'author') and hasattr(cmt.author, 'name'):
-                     if cmt.author.name in users:
-                         user_endo_comment_createdDate = users[cmt.author.name]
-                         three_months = user_endo_comment_createdDate - relativedelta(months=int(init.start_duration))
-                         six_months = user_endo_comment_createdDate - relativedelta(months=int(init.end_duration))
-                         if created_date.date() < three_months and created_date.date() > six_months:
-                             positive_users[cmt.author.name] = 1
-                     else:
-                         negative_users[cmt.author.name] = 1
+                     if cmt.author.name not in user:
+                        user[cmt.author.name] += 1
 
-        return  positive_users, negative_users
+        return user
 
     except Exception as e:
          init.logger.writeError(e)
@@ -69,7 +62,7 @@ def sort_non_subreddits(non_subreddits, n):
         try:
             heap = [(-value, key) for key,value in non_subreddits.items()]
             most_common_subreddits = heapq.nsmallest(n, heap)
-            most_common_subreddits = [(key, -value) for value,key in most_common_subreddits if value < -10]
+            most_common_subreddits = [(key, -value) for value,key in most_common_subreddits]
             return most_common_subreddits
 
         except Exception as e:
@@ -98,10 +91,10 @@ for user_name, first_submission_date in users.items():
                 subreddit = comment['subreddit']
                 date = datetime.utcfromtimestamp(comment['created_utc']) # take those comments which were posted 3 months prior to the date of first
                                             # post of the user in Endo subreddit and within 1 year
-               # three_months = first_submission_date - relativedelta(months=int(init.start_duration))
-               # six_months = first_submission_date - relativedelta(months=int(init.end_duration))
-              #  if  date.date() < six_months:
-                users_non_endo_submissions[user_name][subreddit] += 1
+                three_months = first_submission_date - relativedelta(months=int(init.start_duration))
+                six_months = first_submission_date - relativedelta(months=int(init.end_duration))
+                if  date.date() < three_months and date.date() > six_months:
+                    users_non_endo_submissions[user_name][subreddit] += 1
     except Exception as e:
         print(e)
         init.logger.writeError(e.message)
@@ -119,20 +112,16 @@ if users_non_endo_submissions is not None and len(users_non_endo_submissions) > 
         init.logger.writeError(e.message)
 
 most_common_subreddits = sort_non_subreddits(non_subreddits, len(non_subreddits)- 1)
-non_subreddits = [reddit for reddit in most_common_subreddits if reddit[0] not in sub_reddits]
+non_subreddits = [reddit for reddit in most_common_subreddits if reddit not in sub_reddits]
 print('Completed')
 # n is the number of most common subreddits that we are interested in
 
 # Get the users posting in each of these subreddits
-positive_users = defaultdict(int)
-negative_users = defaultdict(int)
-for sub_red in non_subreddits:
-     positive_users, negative_users =  createPositiveNegativeCases(users,positive_users,negative_users , sub_red[0])
+users_posting_in_non_endo_group = defaultdict(int)
+for sub_red in sub_reddits:
+    users_posting_in_non_endo_group =  returnUserDemographics(users_posting_in_non_endo_group, sub_red)
 
-print('Completed')
-print(len(positive_users))
-print(len(negative_users))
-#positive_users = users_non_endo_submissions # positive cases
-#negative_users = [user for user in users_posting_in_non_endo_group if user not in positive_users ]
+positive_users = users_non_endo_submissions # positive cases
+negative_users = [user for user in users_posting_in_non_endo_group if user not in positive_users ]
 
 
