@@ -13,27 +13,18 @@ import itertools
 import os
 
 init = Init()
-def Process():
-    api_comment_url = 'https://api.pushshift.io/reddit/search/comment/?author=juliadream88&size=1000'
-    url = urllib.request.urlopen(api_comment_url)
-    local_timezone = tzlocal.get_localzone()  # get pytz tzinfo
-    user_data = json.loads(url.read().decode())
-    for u in user_data['data']:
-        t = u['created_utc']
-        l = datetime.fromtimestamp(t).strftime('%c')
-        print('{0}:{1}:{2}'.format(u['subreddit'],l, u['body']))
-     #   utc_time = datetime.strptime(t, "%Y-%m-%d %H:%M:%S")
-      #  local_time = utc_time.replace(tzinfo=pytz.utc).astimezone(local_timezone)
+start_date = datetime.now()
+init_date = parser.parse('Apr 01 2017 12:00AM') # The hard start date
+cut_off_date = parser.parse('Jan 01 2018 12:00AM') # The hard end date - All endo users first post should be between Jan 01 2018 and current date
+cut_off_date_3months = parser.parse('Aug 01 2018 12:00AM') # Added this for negative users - to give a buffer of 3 months. For example, if a user posts on Nov 1st (
+                            # today is Nov 12th, then since there are only 12 days from Nov 1st to 12th, we cant say that the user is a non endo users just because
+                            # the user didnt get a chance to post to endo
 
+def Process():
     endo_users = pd.read_csv('endoUsers.csv')
     non_endo_subreddits = pd.read_csv('10to50.csv').iloc[:,0]
-   # endo_users = dict(itertools.zip_longest(*[iter(endo_users)] * 2, fillvalue=""))
-   # e = endo_users.to_dict('dict')
     endo_users = endo_users.set_index('user_name').T.to_dict('list')
-    start_date = parser.parse("Nov 10 2018 12:00AM")
-  #  start_date = parser.parse('Tue Oct 31 12:36:32 2018')
-    #start_date = parser.parse('Fri Nov 09 12:36:32 2018')
-    init_date = parser.parse('Apr 01 2017 12:00AM')
+
     pos_users = defaultdict(list)
     neg_users = defaultdict(list)
     final_users = defaultdict(list)
@@ -43,11 +34,11 @@ def Process():
       os.mkdir('neg')
     for sub_red in non_endo_subreddits:
         pos_users, neg_users = getEndoBatchUsers(endo_users, sub_red, start_date, init_date, pos_users, neg_users)
-      #  final_users[sub_red].append([len(pos_users), len(neg_users)])
 
         with open('usercount.csv','a') as f:
             s = sub_red + ',' + str(len(pos_users)) + ',' + str(len(neg_users))
             f.write(s)
+            f.write('\n')
         d_pos = os.path.join(d, 'pos')
         d_neg = os.path.join(d, 'neg')
         for i,user in pos_users.items():
@@ -55,25 +46,23 @@ def Process():
                 if not(os.path.exists(os.path.join(d_pos,sub_red))):
                     os.chdir(d_pos)
                     os.mkdir(sub_red)
+                file_name = os.path.join(d_pos, sub_red, i + '.txt')
+                with open(file_name, 'w', encoding='utf-8') as f:
+                    f.write(sub_red)
+                    f.write('\n')
+                    f.write(user[0])
+                    f.write('\n\n')
             except Exception as ex:
                 print(ex)
-            file_name = os.path.join(d_pos, sub_red, i + '.txt')
-            with open(file_name, 'w') as f:
-                f.write(sub_red)
-                f.write('\n')
-                f.write(user[0])
-                f.write('\n\n')
 
         for i,user in neg_users.items():
             try:
                 if not (os.path.exists(os.path.join(d_neg, sub_red))):
                     os.chdir(d_neg)
                     os.mkdir(sub_red)
-            except Exception as ex:
-                print(ex)
-            file_name = os.path.join(d_neg, sub_red, i + '.txt')
-            try:
-                with open(file_name, 'w') as f:
+
+                file_name = os.path.join(d_neg, sub_red, i + '.txt')
+                with open(file_name, 'w', encoding='utf-8') as f:
                     f.write(sub_red)
                     f.write('\n')
                     f.write(user[0])
@@ -100,24 +89,24 @@ def getEndoBatchUsers(endo_users, sub_red, start_date, init_date,pos_users, neg_
              try:
                  t = user_detail['created_utc']
                  msg_created_time = datetime.fromtimestamp(t).strftime('%c')
-                # print('{0}:{1}:{2}'.format(user_detail['subreddit'], user_detail['author'],l))
                  key = user_detail['author']
                  value=user_detail['body']
                  count += 1
-                 if key == 'juliadream88':
-                     s = 'stop'
                  if key in list(endo_users):
                      endo_first_comment_time = endo_users[key]
-                     if parser.parse(msg_created_time) < parser.parse(endo_first_comment_time[0]):
+                     three_months = parser.parse(endo_first_comment_time[0]) - relativedelta(months=int(3))
+                     six_months = parser.parse(endo_first_comment_time[0]) - relativedelta(months=int(9))
+                     if six_months < parser.parse(msg_created_time) < three_months:
                          if key in pos_users:
                              pos_users[key].append(value)
                          else:
                              pos_users[key] = [value]
                  else:
-                     if key in neg_users:
-                         neg_users[key].append(value)
-                     else:
-                         neg_users[key] = [value]
+                     if parser.parse(msg_created_time) < cut_off_date_3months:
+                         if key in neg_users:
+                             neg_users[key].append(value)
+                         else:
+                             neg_users[key] = [value]
 
              except Exception as ex:
                   print(ex.message)
@@ -130,21 +119,24 @@ def getEndoBatchUsers(endo_users, sub_red, start_date, init_date,pos_users, neg_
              try:
                  t = user_detail['created_utc']
                  msg_created_time = datetime.fromtimestamp(t).strftime('%c')
-                # print('{0}:{1}:{2}'.format(user_detail['subreddit'], user_detail['author'], l))
                  key = user_detail['author']
                  value = user_detail['title']
                  if key in list(endo_users):
                      endo_first_comment_time = endo_users[key]
-                     if parser.parse(msg_created_time) < parser.parse(endo_first_comment_time[0]):
+                     three_months = parser.parse(endo_first_comment_time[0]) - relativedelta(months=int(3))
+                     six_months = parser.parse(endo_first_comment_time[0]) - relativedelta(months=int(9))
+                     if six_months < parser.parse(msg_created_time) < three_months:
                          if key in pos_users:
                              pos_users[key].append(value)
                          else:
                              pos_users[key] = [value]
-                 else:
-                     if key in neg_users:
-                         neg_users[key].append(value)
                      else:
-                         neg_users[key] = [value]
+                         if parser.parse(msg_created_time) < cut_off_date_3months:
+                             if key in neg_users:
+                                 neg_users[key].append(value)
+                             else:
+                                 neg_users[key] = [value]
+
              except Exception as ex:
                  print(ex.message)
 
