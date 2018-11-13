@@ -27,7 +27,6 @@ def Process():
 
     pos_users = defaultdict(list)
     neg_users = defaultdict(list)
-    final_users = defaultdict(list)
     d = os.getcwd()
     if not (os.path.exists(os.path.join(d, 'pos'))):
       os.mkdir('pos')
@@ -51,7 +50,6 @@ def Process():
                     f.write(sub_red)
                     f.write('\n')
                     f.write(user[0])
-                    f.write('\n\n')
             except Exception as ex:
                 print(ex)
 
