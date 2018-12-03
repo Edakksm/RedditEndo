@@ -41,7 +41,7 @@ init = Init()
 #start_date = datetime.now()
 #init_date = parser.parse('Apr 01 2017 12:00AM') # The hard start date
 start_date = parser.parse('May 20 2017 01:00AM')
-init_date = parser.parse('May 01 2017 12:00AM')
+init_date = parser.parse('May 15 2017 12:00AM')
 cut_off_date = parser.parse('Jan 01 2018 12:00AM') # The hard end date - All endo users first post should be between Jan 01 2018 and current date
 cut_off_date_3months = parser.parse('Aug 01 2018 12:00AM') # Added this for negative users - to give a buffer of 3 months. For example, if a user posts on Nov 1st (
                             # today is Nov 12th, then since there are only 12 days from Nov 1st to 12th, we cant say that the user is a non endo users just because
@@ -78,15 +78,23 @@ def Process():
         try:
             file_name = os.path.join(d_pos, i + '.txt')
             with open(file_name, 'a', encoding='utf-8') as f:
-                f.write(sub_red)
-                f.write('|')
-                msg_created_time = datetime.fromtimestamp(user[0][1]).strftime('%c')
-                f.write(msg_created_time) #convert to reg date
-                f.write('|')
-                f.write(str(len(user[0][0])))
-                f.write('|')
-                f.write(user[0][0])
-                f.write('\n')
+                count = len(user)
+                if count > 1:
+                    with open('count_greaterthan1.csv', 'a', encoding='utf-8') as g:
+                        g.write(i)
+                        g.write('|')
+                        g.write(str(count))
+                        g.write('\n')
+                for i in range(count):
+                    f.write(user[i][0])
+                    f.write('|')
+                    msg_created_time = datetime.fromtimestamp(user[i][2]).strftime('%c')
+                    f.write(msg_created_time) #convert to reg date
+                    f.write('|')
+                    f.write(str(len(user[i][1])))
+                    f.write('|')
+                    f.write(user[i][1])
+                    f.write('\n')
         except Exception as ex:
             print(ex)
 
@@ -94,15 +102,24 @@ def Process():
         os.chdir(d_neg)
     for i,user in neg_users.items():
         try:
+            file_name = os.path.join(d_neg, i + '.txt')
             with open(file_name, 'a', encoding='utf-8') as f:
-                    f.write(sub_red)
+                count = len(user)
+                if count > 1:
+                    with open('count_greaterthan1.csv', 'a', encoding='utf-8') as g:
+                        g.write(i)
+                        g.write('|')
+                        g.write(str(count))
+                        g.write('\n')
+                for i in range(count):
+                    f.write(user[i][0])
                     f.write('|')
-                    msg_created_time = datetime.fromtimestamp(user[0][1]).strftime('%c')
+                    msg_created_time = datetime.fromtimestamp(user[i][2]).strftime('%c')
                     f.write(msg_created_time)  # convert to reg date
                     f.write('|')
-                    f.write(str(len(user[0][0])))
+                    f.write(str(len(user[i][1])))
                     f.write('|')
-                    f.write(user[0][0])
+                    f.write(user[i][1])
                     f.write('\n')
         except Exception as ex:
             print(ex)
@@ -137,23 +154,23 @@ def getEndoBatchUsers(endo_users, sub_red, start_date, init_date,pos_users, neg_
                                  six_months = parser.parse(endo_first_comment_time[0]) - relativedelta(months=int(9))
                                  if six_months < parser.parse(msg_created_time) < three_months:
                                      if key in pos_users:
-                                         pos_users[key].append((value,t, len(value)))
+                                         pos_users[key].append((sub_red,value,t, len(value)))
                                      else:
-                                         pos_users[key] = [(value,t, len(value))]
+                                         pos_users[key] = [(sub_red,value,t, len(value))]
                                      dates.add(t)
                                      comment_length.add(len(value))
                                  else:
                                      if key in outside_users:
-                                         outside_users[key].append((value,t, len(value)))
+                                         outside_users[key].append((sub_red, value,t, len(value)))
                                      else:
-                                         outside_users[key] = [(value,t, len(value))]
+                                         outside_users[key] = [(sub_red,value,t, len(value))]
                              else:
                                  if t in dates or len(value) in comment_length:
                                      if parser.parse(msg_created_time) < cut_off_date_3months:
                                          if key in neg_users:
-                                             neg_users[key].append((value,t, len(value)))
+                                             neg_users[key].append((sub_red,value,t, len(value)))
                                          else:
-                                             neg_users[key] = [(value,t, len(value))]
+                                             neg_users[key] = [(sub_red,value,t, len(value))]
 
                  except Exception as ex:
                       print(ex)
@@ -176,23 +193,23 @@ def getEndoBatchUsers(endo_users, sub_red, start_date, init_date,pos_users, neg_
                              six_months = parser.parse(endo_first_comment_time[0]) - relativedelta(months=int(9))
                              if six_months < parser.parse(msg_created_time) < three_months:
                                  if key in pos_users:
-                                     pos_users[key].append((value, t, len(value)))
+                                     pos_users[key].append((sub_red,value, t, len(value)))
                                  else:
-                                     pos_users[key] = [(value, t, len(value))]
+                                     pos_users[key] = [(sub_red,value, t, len(value))]
                                  dates.add(t)
                                  comment_length.add(len(value))
                              else:
                                  if key in outside_users:
-                                     outside_users[key].append((value, t, len(value)))
+                                     outside_users[key].append((sub_red,value, t, len(value)))
                                  else:
-                                     outside_users[key] = [(value, t, len(value))]
+                                     outside_users[key] = [(sub_red,value, t, len(value))]
                          else:
                              if t in dates or len(value) in comment_length:
                                  if parser.parse(msg_created_time) < cut_off_date_3months:
                                      if key in neg_users:
-                                         neg_users[key].append((value, t, len(value)))
+                                         neg_users[key].append((sub_red,value, t, len(value)))
                                      else:
-                                         neg_users[key] = [(value, t, len(value))]
+                                         neg_users[key] = [(sub_red,value, t, len(value))]
                  except Exception as ex:
                      print(ex)
 
