@@ -88,5 +88,7 @@ model.fit(X_train, y_train, batch_size = 128, epochs = 5, validation_data = (X_v
 
 
 y_test_pred = model.predict(test_input_data[:])
-print(y_test_pred)
+for i in range(len(y_test_pred)):
+    print(y_test_pred[i])
+    print(y_test[i])
 print(len(test_input_data))
